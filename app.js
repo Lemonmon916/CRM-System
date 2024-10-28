@@ -1,75 +1,99 @@
-/* 將檔名輸入為 "app.js" */
-
 const App = () => {
-    // 示例數據
-    const clients = [
-        {
-            agencyName: "李奧貝納",
-            agencyId: "AG001",
-            brandName: "可口可樂",
-            caseNumber: "AG001-001",
-            accounts: [
-                { platform: "POPIN", accountName: "可口可樂主品牌", accountId: "POP123" },
-                { platform: "RIXBEE", accountName: "可口可樂台灣", accountId: "RIX456" }
-            ]
-        },
-        {
-            agencyName: "李奧貝納",
-            agencyId: "AG001",
-            brandName: "雀巢",
-            caseNumber: "AG001-002",
-            accounts: [
-                { platform: "POPIN", accountName: "雀巢咖啡", accountId: "POP789" },
-                { platform: "RIXBEE", accountName: "雀巢台灣", accountId: "RIX012" }
-            ]
-        }
-    ];
+    const [currentUser, setCurrentUser] = React.useState(null);
+    const [activeMenu, setActiveMenu] = React.useState('dashboard');
+    
+    // 處理登入
+    const handleLogin = (user) => {
+        setCurrentUser(user);
+    };
+
+    // 如果未登入，顯示登入頁面
+    if (!currentUser) {
+        return <LoginPage onLogin={handleLogin} />;
+    }
 
     return (
-        <div className="p-6">
-            <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold text-blue-900">客戶管理系統</h1>
+        <div className="flex h-screen bg-gray-100">
+            {/* 左側選單 */}
+            <div className="w-64 bg-blue-800 text-white">
+                <div className="p-4 border-b border-blue-700">
+                    <h1 className="text-lg font-bold">客戶管理系統</h1>
+                    <p className="text-sm text-blue-300 mt-1">{currentUser.name} - {currentUser.role}</p>
+                </div>
+                <nav className="mt-4">
+                    <MenuItem 
+                        active={activeMenu === 'dashboard'}
+                        onClick={() => setActiveMenu('dashboard')}
+                        icon="home"
+                        text="儀表板"
+                    />
+                    <MenuItem 
+                        active={activeMenu === 'clients'}
+                        onClick={() => setActiveMenu('clients')}
+                        icon="users"
+                        text="客戶管理"
+                    />
+                    {currentUser.department === 'FINANCE' && (
+                        <MenuItem 
+                            active={activeMenu === 'invoices'}
+                            onClick={() => setActiveMenu('invoices')}
+                            icon="file-text"
+                            text="發票管理"
+                        />
+                    )}
+                    <MenuItem 
+                        active={activeMenu === 'budgets'}
+                        onClick={() => setActiveMenu('budgets')}
+                        icon="dollar-sign"
+                        text="預算管理"
+                    />
+                </nav>
             </div>
-            
-            <div className="bg-white rounded-lg shadow-lg p-6">
-                <h2 className="text-xl font-bold text-blue-900 mb-4">品牌客戶列表</h2>
-                <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
-                            <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-blue-800 uppercase tracking-wider">案號</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-blue-800 uppercase tracking-wider">代理商</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-blue-800 uppercase tracking-wider">品牌名稱</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-blue-800 uppercase tracking-wider">PopIn 帳號</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-blue-800 uppercase tracking-wider">Rixbee 帳號</th>
-                            </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                            {clients.map((client, index) => (
-                                <tr key={index} className="hover:bg-blue-50">
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className="px-2 py-1 text-sm text-blue-700 bg-blue-100 rounded-full">
-                                            {client.caseNumber}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">{client.agencyName}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap">{client.brandName}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="text-sm">
-                                            <div>{client.accounts[0].accountName}</div>
-                                            <div className="text-gray-500">ID: {client.accounts[0].accountId}</div>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="text-sm">
-                                            <div>{client.accounts[1].accountName}</div>
-                                            <div className="text-gray-500">ID: {client.accounts[1].accountId}</div>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+
+            {/* 主要內容區域 */}
+            <div className="flex-1 overflow-auto">
+                <div className="p-6">
+                    {activeMenu === 'dashboard' && <Dashboard />}
+                    {activeMenu === 'clients' && <ClientsPage />}
+                    {activeMenu === 'invoices' && <InvoicesPage />}
+                    {activeMenu === 'budgets' && <BudgetsPage />}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// 選單項目元件
+const MenuItem = ({ active, onClick, icon, text }) => (
+    <button
+        className={`w-full flex items-center px-4 py-2 text-sm ${
+            active ? 'bg-blue-700' : 'hover:bg-blue-700'
+        }`}
+        onClick={onClick}
+    >
+        <i className={`lucide lucide-${icon} mr-2`}></i>
+        {text}
+    </button>
+);
+
+// 登入頁面元件
+const LoginPage = ({ onLogin }) => {
+    const users = LocalStorage.load('users');
+
+    return (
+        <div className="min-h-screen flex items-center justify-center bg-gray-100">
+            <div className="bg-white p-8 rounded-lg shadow-md w-96">
+                <h1 className="text-2xl font-bold text-center mb-6">系統登入</h1>
+                <div className="space-y-4">
+                    {users.map(user => (
+                        <button
+                            key={user.id}
+                            className="w-full p-3 bg-blue-600 text-white rounded hover:bg-blue-700"
+                            onClick={() => onLogin(user)}
+                        >
+                            {user.name} - {user.role}
+                        </button>
+                    ))}
                 </div>
             </div>
         </div>
