@@ -347,3 +347,4 @@ const AddClientModal = ({ onClose, onAdd }) => {
 };
 
 ReactDOM.render(<App />, document.getElementById('root'));
+
