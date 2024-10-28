@@ -1,3 +1,6 @@
+// 創建 UserContext
+const UserContext = React.createContext(null);
+
 // App 主元件
 const App = () => {
     const [currentUser, setCurrentUser] = React.useState(null);
@@ -14,53 +17,55 @@ const App = () => {
     }
 
     return (
-        <div className="flex h-screen bg-gray-100">
-            {/* 左側選單 */}
-            <div className="w-64 bg-blue-800 text-white">
-                <div className="p-4 border-b border-blue-700">
-                    <h1 className="text-lg font-bold">客戶管理系統</h1>
-                    <p className="text-sm text-blue-300 mt-1">{currentUser.name} - {currentUser.role}</p>
-                </div>
-                <nav className="mt-4">
-                    <MenuItem 
-                        active={activeMenu === 'dashboard'}
-                        onClick={() => setActiveMenu('dashboard')}
-                        icon="home"
-                        text="儀表板"
-                    />
-                    <MenuItem 
-                        active={activeMenu === 'clients'}
-                        onClick={() => setActiveMenu('clients')}
-                        icon="users"
-                        text="客戶管理"
-                    />
-                    {currentUser.department === 'FINANCE' && (
+        <UserContext.Provider value={currentUser}>
+            <div className="flex h-screen bg-gray-100">
+                {/* 左側選單 */}
+                <div className="w-64 bg-blue-800 text-white">
+                    <div className="p-4 border-b border-blue-700">
+                        <h1 className="text-lg font-bold">客戶管理系統</h1>
+                        <p className="text-sm text-blue-300 mt-1">{currentUser.name} - {currentUser.role}</p>
+                    </div>
+                    <nav className="mt-4">
                         <MenuItem 
-                            active={activeMenu === 'invoices'}
-                            onClick={() => setActiveMenu('invoices')}
-                            icon="file-text"
-                            text="發票管理"
+                            active={activeMenu === 'dashboard'}
+                            onClick={() => setActiveMenu('dashboard')}
+                            icon="home"
+                            text="儀表板"
                         />
-                    )}
-                    <MenuItem 
-                        active={activeMenu === 'budgets'}
-                        onClick={() => setActiveMenu('budgets')}
-                        icon="dollar-sign"
-                        text="預算管理"
-                    />
-                </nav>
-            </div>
+                        <MenuItem 
+                            active={activeMenu === 'clients'}
+                            onClick={() => setActiveMenu('clients')}
+                            icon="users"
+                            text="客戶管理"
+                        />
+                        {currentUser.department === 'FINANCE' && (
+                            <MenuItem 
+                                active={activeMenu === 'invoices'}
+                                onClick={() => setActiveMenu('invoices')}
+                                icon="file-text"
+                                text="發票管理"
+                            />
+                        )}
+                        <MenuItem 
+                            active={activeMenu === 'budgets'}
+                            onClick={() => setActiveMenu('budgets')}
+                            icon="dollar-sign"
+                            text="預算管理"
+                        />
+                    </nav>
+                </div>
 
-            {/* 主要內容區域 */}
-            <div className="flex-1 overflow-auto">
-                <div className="p-6">
-                    {activeMenu === 'dashboard' && <div>儀表板內容</div>}
-                    {activeMenu === 'clients' && <ClientsPage />}
-                    {activeMenu === 'invoices' && <div>發票管理內容</div>}
-                    {activeMenu === 'budgets' && <div>預算管理內容</div>}
+                {/* 主要內容區域 */}
+                <div className="flex-1 overflow-auto">
+                    <div className="p-6">
+                        {activeMenu === 'dashboard' && <div>儀表板內容</div>}
+                        {activeMenu === 'clients' && <ClientsPage />}
+                        {activeMenu === 'invoices' && <InvoicesPage />}
+                        {activeMenu === 'budgets' && <div>預算管理內容</div>}
+                    </div>
                 </div>
             </div>
-        </div>
+        </UserContext.Provider>
     );
 };
 
@@ -76,7 +81,6 @@ const MenuItem = ({ active, onClick, icon, text }) => (
         {text}
     </button>
 );
-
 // 登入頁面元件
 const LoginPage = ({ onLogin }) => {
     const users = LocalStorage.load('users');
@@ -219,7 +223,6 @@ const ClientsPage = () => {
         </div>
     );
 };
-
 // 新增客戶 Modal 元件
 const AddClientModal = ({ onClose, onAdd }) => {
     const [formData, setFormData] = React.useState({
@@ -323,8 +326,7 @@ const AddClientModal = ({ onClose, onAdd }) => {
                                 required
                             />
                         </div>
-                    </div
-</div>
+                    </div>
                     <div className="flex justify-end space-x-3">
                         <button
                             type="button"
@@ -346,5 +348,107 @@ const AddClientModal = ({ onClose, onAdd }) => {
     );
 };
 
-ReactDOM.render(<App />, document.getElementById('root'));
+// 發票管理頁面
+const InvoicesPage = () => {
+    const [invoices, setInvoices] = React.useState(LocalStorage.load('invoices') || []);
+    const currentUser = React.useContext(UserContext);
+    const [showAddModal, setShowAddModal] = React.useState(false);
 
+    const handleApprove = (invoiceId) => {
+        const updatedInvoices = invoices.map(invoice => 
+            invoice.id === invoiceId 
+                ? {...invoice, status: 'APPROVED', approvedBy: currentUser.name, approvedAt: new Date().toISOString()}
+                : invoice
+        );
+        setInvoices(updatedInvoices);
+        LocalStorage.save('invoices', updatedInvoices);
+    };
+
+    const handleReject = (invoiceId) => {
+        const updatedInvoices = invoices.map(invoice => 
+            invoice.id === invoiceId 
+                ? {...invoice, status: 'REJECTED', rejectedBy: currentUser.name, rejectedAt: new Date().toISOString()}
+                : invoice
+        );
+        setInvoices(updatedInvoices);
+        LocalStorage.save('invoices', updatedInvoices);
+    };
+
+    return (
+        <div>
+            <div className="flex justify-between items-center mb-6">
+                <h1 className="text-2xl font-bold text-blue-900">發票管理</h1>
+                {currentUser.department !== 'FINANCE' && (
+                    <button
+                        onClick={() => setShowAddModal(true)}
+                        className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                    >
+                        <i data-lucide="plus" className="w-4 h-4 mr-2"></i>
+                        開立發票
+                    </button>
+                )}
+            </div>
+
+            <div className="bg-white rounded-lg shadow">
+                <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                        <tr>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-blue-800 uppercase tracking-wider">發票號碼</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-blue-800 uppercase tracking-wider">客戶名稱</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-blue-800 uppercase tracking-wider">金額</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-blue-800 uppercase tracking-wider">狀態</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-blue-800 uppercase tracking-wider">開立部門</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-blue-800 uppercase tracking-wider">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                        {invoices.map((invoice) => (
+                            <tr key={invoice.id} className="hover:bg-blue-50">
+                                <td className="px-6 py-4 whitespace-nowrap">{invoice.invoiceNumber}</td>
+                                <td className="px-6 py-4 whitespace-nowrap">{invoice.clientName}</td>
+                                <td className="px-6 py-4 whitespace-nowrap">${invoice.amount.toLocaleString()}</td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                    <span className={`px-2 py-1 text-xs rounded-full ${
+                                        invoice.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
+                                        invoice.status === 'APPROVED' ? 'bg-green-100 text-green-800' :
+                                        'bg-red-100 text-red-800'
+                                    }`}>
+                                        {invoice.status === 'PENDING' ? '待審核' :
+                                         invoice.status === 'APPROVED' ? '已核准' : '已拒絕'}
+                                    </span>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">{invoice.department}</td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                    <div className="flex space-x-2">
+                                        {currentUser.department === 'FINANCE' && invoice.status === 'PENDING' && (
+                                            <>
+                                                <button 
+                                                    onClick={() => handleApprove(invoice.id)}
+                                                    className="text-green-600 hover:text-green-800"
+                                                >
+                                                    <i data-lucide="check" className="w-4 h-4"></i>
+                                                </button>
+                                                <button
+                                                    onClick={() => handleReject(invoice.id)}
+                                                    className="text-red-600 hover:text-red-800"
+                                                >
+                                                    <i data-lucide="x" className="w-4 h-4"></i>
+                                                </button>
+                                            </>
+                                        )}
+                                        <button className="text-blue-600 hover:text-blue-800">
+                                            <i data-lucide="eye" className="w-4 h-4"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    );
+};
+
+// 渲染應用
+ReactDOM.render(<App />, document.getElementById('root'));
