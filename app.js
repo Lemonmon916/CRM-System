@@ -456,22 +456,26 @@ const InvoicesPage = () => {
                                 <td className="px-6 py-4 whitespace-nowrap">{invoice.department}</td>
                                 <td className="px-6 py-4 whitespace-nowrap">
                                     <div className="flex space-x-2">
-                                        {currentUser.department === 'FINANCE' && invoice.status === 'PENDING' && (
-                                            <>
-                                                <button 
-                                                    onClick={() => handleApprove(invoice.id)}
-                                                    className="text-green-600 hover:text-green-800"
-                                                >
-                                                    <i data-lucide="check" className="w-4 h-4"></i>
-                                                </button>
-                                                <button
-                                                    onClick={() => handleReject(invoice.id)}
-                                                    className="text-red-600 hover:text-red-800"
-                                                >
-                                                    <i data-lucide="x" className="w-4 h-4"></i>
-                                                </button>
-                                            </>
-                                        )}
+                                       {currentUser.department === 'FINANCE' && invoice.status === 'PENDING' ? (
+    <div className="flex space-x-2">
+        <button 
+            onClick={() => handleApprove(invoice.id)}
+            className="text-green-600 hover:text-green-800"
+        >
+            <i data-lucide="check" className="w-4 h-4"></i>
+        </button>
+        <button
+            onClick={() => handleReject(invoice.id)}
+            className="text-red-600 hover:text-red-800"
+        >
+            <i data-lucide="x" className="w-4 h-4"></i>
+        </button>
+    </div>
+) : (
+    <button className="text-blue-600 hover:text-blue-800">
+        <i data-lucide="eye" className="w-4 h-4"></i>
+    </button>
+)}
                                         <button className="text-blue-600 hover:text-blue-800">
                                             <i data-lucide="eye" className="w-4 h-4"></i>
                                         </button>
