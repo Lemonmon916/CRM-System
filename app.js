@@ -72,7 +72,9 @@ const App = () => {
             </div>
         </UserContext.Provider>
     );
-};// 選單項目元件
+};
+
+// 選單項目元件
 const MenuItem = ({ active, onClick, icon, text }) => (
     <button
         className={`w-full flex items-center px-4 py-2 text-sm ${
@@ -406,8 +408,6 @@ const InvoicesPage = () => {
         );
         setInvoices(updatedInvoices);
         LocalStorage.save('invoices', updatedInvoices);
-    };
-
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
