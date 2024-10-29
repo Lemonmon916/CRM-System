@@ -72,9 +72,7 @@ const App = () => {
             </div>
         </UserContext.Provider>
     );
-};
-
-// 選單項目元件
+};// 選單項目元件
 const MenuItem = ({ active, onClick, icon, text }) => (
     <button
         className={`w-full flex items-center px-4 py-2 text-sm ${
@@ -86,6 +84,7 @@ const MenuItem = ({ active, onClick, icon, text }) => (
         {text}
     </button>
 );
+
 // 儀表板頁面
 const DashboardPage = () => {
     const currentUser = React.useContext(UserContext);
@@ -165,7 +164,6 @@ const ClientsPage = () => {
         LocalStorage.save('clients', updatedClients);
         setShowAddModal(false);
     };
-
     return (
         <div>
             {/* 頁面標題和操作區 */}
@@ -456,26 +454,22 @@ const InvoicesPage = () => {
                                 <td className="px-6 py-4 whitespace-nowrap">{invoice.department}</td>
                                 <td className="px-6 py-4 whitespace-nowrap">
                                     <div className="flex space-x-2">
-                                       {currentUser.department === 'FINANCE' && invoice.status === 'PENDING' ? (
-    <div className="flex space-x-2">
-        <button 
-            onClick={() => handleApprove(invoice.id)}
-            className="text-green-600 hover:text-green-800"
-        >
-            <i data-lucide="check" className="w-4 h-4"></i>
-        </button>
-        <button
-            onClick={() => handleReject(invoice.id)}
-            className="text-red-600 hover:text-red-800"
-        >
-            <i data-lucide="x" className="w-4 h-4"></i>
-        </button>
-    </div>
-) : (
-    <button className="text-blue-600 hover:text-blue-800">
-        <i data-lucide="eye" className="w-4 h-4"></i>
-    </button>
-)}
+                                        {currentUser.department === 'FINANCE' && invoice.status === 'PENDING' ? (
+                                            <>
+                                                <button 
+                                                    onClick={() => handleApprove(invoice.id)}
+                                                    className="text-green-600 hover:text-green-800"
+                                                >
+                                                    <i data-lucide="check" className="w-4 h-4"></i>
+                                                </button>
+                                                <button
+                                                    onClick={() => handleReject(invoice.id)}
+                                                    className="text-red-600 hover:text-red-800"
+                                                >
+                                                    <i data-lucide="x" className="w-4 h-4"></i>
+                                                </button>
+                                            </>
+                                        ) : null}
                                         <button className="text-blue-600 hover:text-blue-800">
                                             <i data-lucide="eye" className="w-4 h-4"></i>
                                         </button>
