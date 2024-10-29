@@ -6,6 +6,13 @@ const App = () => {
     const [currentUser, setCurrentUser] = React.useState(null);
     const [activeMenu, setActiveMenu] = React.useState('dashboard');
     
+    React.useEffect(() => {
+        // 自動創建 Lucide 圖標
+        if (window.lucide) {
+            window.lucide.createIcons();
+        }
+    });
+
     // 處理登入
     const handleLogin = (user) => {
         setCurrentUser(user);
@@ -38,14 +45,12 @@ const App = () => {
                             icon="users"
                             text="客戶管理"
                         />
-                        {currentUser.department === 'FINANCE' && (
-                            <MenuItem 
-                                active={activeMenu === 'invoices'}
-                                onClick={() => setActiveMenu('invoices')}
-                                icon="file-text"
-                                text="發票管理"
-                            />
-                        )}
+                        <MenuItem 
+                            active={activeMenu === 'invoices'}
+                            onClick={() => setActiveMenu('invoices')}
+                            icon="file-text"
+                            text="發票管理"
+                        />
                         <MenuItem 
                             active={activeMenu === 'budgets'}
                             onClick={() => setActiveMenu('budgets')}
@@ -58,7 +63,7 @@ const App = () => {
                 {/* 主要內容區域 */}
                 <div className="flex-1 overflow-auto">
                     <div className="p-6">
-                        {activeMenu === 'dashboard' && <div>儀表板內容</div>}
+                        {activeMenu === 'dashboard' && <DashboardPage />}
                         {activeMenu === 'clients' && <ClientsPage />}
                         {activeMenu === 'invoices' && <InvoicesPage />}
                         {activeMenu === 'budgets' && <div>預算管理內容</div>}
@@ -81,6 +86,37 @@ const MenuItem = ({ active, onClick, icon, text }) => (
         {text}
     </button>
 );
+// 儀表板頁面
+const DashboardPage = () => {
+    const currentUser = React.useContext(UserContext);
+    const clients = LocalStorage.load('clients') || [];
+    const invoices = LocalStorage.load('invoices') || [];
+
+    return (
+        <div>
+            <h1 className="text-2xl font-bold text-blue-900 mb-6">歡迎，{currentUser.name}</h1>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-white p-6 rounded-lg shadow">
+                    <h2 className="text-lg font-semibold mb-2">客戶總數</h2>
+                    <p className="text-3xl text-blue-600">{clients.length}</p>
+                </div>
+                <div className="bg-white p-6 rounded-lg shadow">
+                    <h2 className="text-lg font-semibold mb-2">待處理發票</h2>
+                    <p className="text-3xl text-yellow-600">
+                        {invoices.filter(inv => inv.status === 'PENDING').length}
+                    </p>
+                </div>
+                <div className="bg-white p-6 rounded-lg shadow">
+                    <h2 className="text-lg font-semibold mb-2">本月發票總額</h2>
+                    <p className="text-3xl text-green-600">
+                        ${invoices.reduce((sum, inv) => sum + inv.amount, 0).toLocaleString()}
+                    </p>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 // 登入頁面元件
 const LoginPage = ({ onLogin }) => {
     const users = LocalStorage.load('users');
@@ -159,7 +195,7 @@ const ClientsPage = () => {
             </div>
 
             {/* 客戶列表 */}
-            <div className="bg-white rounded-lg shadow">
+            <div className="bg-white rounded-lg shadow overflow-hidden">
                 <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                         <tr>
